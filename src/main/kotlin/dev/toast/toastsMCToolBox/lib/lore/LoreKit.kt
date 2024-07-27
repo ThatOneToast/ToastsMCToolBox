@@ -7,7 +7,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
-class LoreKit {
+object LoreKit {
 
 
     data class LoreStorage(val lore: MutableList<String> = mutableListOf()) {
@@ -134,7 +134,6 @@ class LoreKit {
             // Enchantments If there is an enchantment* key the enchantments lore section will be added.
             if (enchantmentLores.isNotEmpty()) {
                 LoresCompons.add(MiniMessage.miniMessage().deserialize("<gold>----- <bold>Enchantments</bold> -----</gold>"))
-                LoresCompons.add(MiniMessage.miniMessage().deserialize("<reset>"))
                 enchantmentLores.forEach {
                     LoresCompons.add(MiniMessage.miniMessage().deserialize(it))
                 }
@@ -143,7 +142,6 @@ class LoreKit {
 
             if (lores.isNotEmpty()) {
                 LoresCompons.add(MiniMessage.miniMessage().deserialize("<gold>----- <bold>Information</bold> -----</gold>"))
-                LoresCompons.add(MiniMessage.miniMessage().deserialize("<reset>"))
 
                 lores.forEach {
                     LoresCompons.add(MiniMessage.miniMessage().deserialize(it))
