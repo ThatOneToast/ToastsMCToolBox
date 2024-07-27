@@ -117,21 +117,33 @@ object LoreKit {
             val loreStorage = LoreStorage(loreList)
             pdc.set(ToolBox.LORE_KEY, PersistentDataType.BYTE_ARRAY, loreStorage.toByteArray())
 
+            val descriptionLore: MutableList<String> = mutableListOf()
             val enchantmentLores: MutableList<String> = mutableListOf()
+            val infoLores: MutableList<String> = mutableListOf()
             val lores: MutableList<String> = mutableListOf()
+
+
             lore.forEach {
                 if (it.key.startsWith("enchantment")) {
                     enchantmentLores.add(it.value)
+                } else if (it.key.startsWith("info")) {
+                    infoLores.add(it.value)
+                } else if (it.key.startsWith("desc") || it.key.startsWith("description")) {
+                    descriptionLore.add(it.value)
                 } else {
                     lores.add(it.value)
                 }
             }
 
-
-
             val LoresCompons: MutableList<Component> = mutableListOf()
 
-            // Enchantments If there is an enchantment* key the enchantments lore section will be added.
+
+            if (descriptionLore.isNotEmpty()) {
+                descriptionLore.forEach {
+                    LoresCompons.add(MiniMessage.miniMessage().deserialize(it))
+                }
+            }
+
             if (enchantmentLores.isNotEmpty()) {
                 LoresCompons.add(MiniMessage.miniMessage().deserialize("<gold>----- <bold>Enchantments</bold> -----</gold>"))
                 enchantmentLores.forEach {
@@ -139,14 +151,21 @@ object LoreKit {
                 }
             }
 
-
-            if (lores.isNotEmpty()) {
+            if (infoLores.isNotEmpty()) {
                 LoresCompons.add(MiniMessage.miniMessage().deserialize("<gold>----- <bold>Information</bold> -----</gold>"))
 
+                infoLores.forEach {
+                    LoresCompons.add(MiniMessage.miniMessage().deserialize(it))
+                }
+            }
+
+            if (lores.isNotEmpty()) {
+                LoresCompons.add(MiniMessage.miniMessage().deserialize(" "))
                 lores.forEach {
                     LoresCompons.add(MiniMessage.miniMessage().deserialize(it))
                 }
             }
+
             itemMeta.lore(LoresCompons)
             item.itemMeta = itemMeta
 

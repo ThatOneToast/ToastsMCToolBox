@@ -9,7 +9,7 @@ import dev.toast.toastsMCToolBox.lib.tags.TagKit
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.Plugin
 
-class  ToolBox(private val plugin: Plugin) {
+class ToolBox(private val plugin: Plugin) {
 
 
     private val listOfListeners = mutableListOf(
