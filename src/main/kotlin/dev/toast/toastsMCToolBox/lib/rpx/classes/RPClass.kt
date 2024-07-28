@@ -3,7 +3,7 @@ package dev.toast.toastsMCToolBox.lib.rpx.classes
 import com.google.gson.Gson
 import dev.toast.toastsMCToolBox.lib.overrides.message
 import dev.toast.toastsMCToolBox.lib.overrides.selectedRace
-import dev.toast.toastsMCToolBox.lib.overrides.stats
+import dev.toast.toastsMCToolBox.lib.overrides.toolbox
 import org.bukkit.Material
 import org.bukkit.entity.Player
 
@@ -38,14 +38,14 @@ abstract class RPClass {
     fun attachToPlayer(player: Player) {
         player.selectedRace = this
 
-        player.stats.maxHealth = getBaseStartingHealth()
-        player.stats.armor = getBaseStartingArmor()
-        player.stats.speed = getBaseStartingSpeed()
-        player.stats.jumpHeight = getBaseStartingJumpHeight()
-        player.stats.attackDamage = getBaseStartingAttackDamage()
-        player.stats.attackSpeed = getBaseStartingAttackDamage()
+        player.toolbox.maxHealth = getBaseStartingHealth()
+        player.toolbox.armor = getBaseStartingArmor()
+        player.toolbox.speed = getBaseStartingSpeed()
+        player.toolbox.jumpHeight = getBaseStartingJumpHeight()
+        player.toolbox.attackDamage = getBaseStartingAttackDamage()
+        player.toolbox.attackSpeed = getBaseStartingAttackDamage()
 
-        player.stats.health = getBaseStartingHealth()
+        player.toolbox.health = getBaseStartingHealth()
 
         player.message("<green>You have been assigned the ${getName()} class.")
 

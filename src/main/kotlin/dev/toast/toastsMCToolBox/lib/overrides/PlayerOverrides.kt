@@ -1,8 +1,11 @@
 package dev.toast.toastsMCToolBox.lib.overrides
 
 import dev.toast.toastsMCToolBox.lib.ToolBox
+import dev.toast.toastsMCToolBox.lib.files.FileKit
+import dev.toast.toastsMCToolBox.lib.rpx.RPXKit
 import dev.toast.toastsMCToolBox.lib.rpx.classes.RPClass
 import dev.toast.toastsMCToolBox.lib.rpx.skills.RPSkill
+import dev.toast.toastsMCToolBox.lib.rpx.storage.Store
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
@@ -19,7 +22,8 @@ fun Player.message(message: String) {
     this.sendMessage(messagee)
 }
 
-class Stats(val player: Player) {
+@Suppress("UNUSED")
+class ToolBox(val player: Player) {
     var health: Double
         get() = player.health
         set(value) {
@@ -91,30 +95,45 @@ class Stats(val player: Player) {
         get() = xpNeeded > xp
 
     val skills: MutableSet<RPSkill>
+        get() = RPXKit.playerSpecificSkills[player.uniqueId] ?: mutableSetOf()
+
+    var skillsUnit: Store.SkillsUnit
         get() {
-            val byteArrayList: List<ByteArray> = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_SKILLS, PersistentDataType.LIST.byteArrays()) ?: mutableListOf<ByteArray>()
-            return byteArrayList.map { RPSkill.deserialize(it) }.toMutableSet()
+            val uuid = player.uniqueId
+            val file = FileKit.getNormyFile("${uuid}/skills.txt", ToolBox.playerStorageUnitsPath)
+            if (!file.exists()) { file.mkdirs(); file.createNewFile() }
+            val contents = file.readText()
+            val unit = Store.SkillsUnit.deserialize(contents)
+            return unit
+        }
+        set(value) {
+            println("Setting skills unit")
+            println(value)
+            val uuid = player.uniqueId
+            val file = FileKit.getFile("${uuid}/skills.txt", ToolBox.playerStorageUnitsPath)
+            file.overwrite(value.serialize())
         }
 
     fun addSkill(skill: RPSkill) {
-        val byteArrayList: List<ByteArray> = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_SKILLS, PersistentDataType.LIST.byteArrays()) ?: mutableListOf()
-        val skills: MutableList<RPSkill> = byteArrayList.map { RPSkill.deserialize(it) }.toMutableList()
-        skills.add(skill)
-        val newByteArrayList: List<ByteArray> = skills.map { it.serialize() }.toList()
-        player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_SKILLS, PersistentDataType.LIST.byteArrays(), newByteArrayList)
+        RPXKit.playerSpecificSkills[player.uniqueId]?.add(skill) ?: mutableSetOf(skill)
     }
 
     fun removeSkill(skillName: String) {
-        val byteArrayList: List<ByteArray> = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_SKILLS, PersistentDataType.LIST.byteArrays()) ?: mutableListOf()
-        val skills: MutableList<RPSkill> = byteArrayList.map { RPSkill.deserialize(it) }.toMutableList()
-        skills.removeIf { it.getName() == skillName }
-        val newByteArrayList: List<ByteArray> = skills.map { it.serialize() }.toList()
-        player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_SKILLS, PersistentDataType.LIST.byteArrays(), newByteArrayList)
+        RPXKit.playerSpecificSkills[player.uniqueId]?.removeIf { it.getName() == skillName }
+    }
+
+    fun getSkill(skillName: String): RPSkill? {
+        return RPXKit.playerSpecificSkills[player.uniqueId]?.firstOrNull { it.getName() == skillName }
+    }
+
+    fun saveSkills() {
+        val unit = Store.SkillsUnit(RPXKit.playerSpecificSkills[player.uniqueId] ?: mutableSetOf())
+        skillsUnit = unit
     }
 }
 
-val Player.stats: Stats
-    get() = Stats(this)
+val Player.toolbox: dev.toast.toastsMCToolBox.lib.overrides.ToolBox
+    get() = ToolBox(this)
 
 var Player.selectedRace: RPClass?
     get() {

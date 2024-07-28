@@ -52,11 +52,8 @@ object LoreKit {
          *
          */
         fun setLore(identifier: String, lore: String?) {
-            if (lore == null) {
-                removeLore(identifier)
-            } else {
-                this.lore[identifier] = lore
-            }
+            if (lore == null) removeLore(identifier)
+             else this.lore[identifier] = lore
         }
 
         /**

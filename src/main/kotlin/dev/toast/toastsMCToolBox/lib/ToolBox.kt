@@ -18,6 +18,7 @@ class ToolBox(private val plugin: Plugin) {
 
     init {
         instance = plugin
+        playerStorageUnitsPath = "${instance.dataFolder.absolutePath}/PSUs/"
         LORE_KEY = NamespacedKey(plugin, "lore")
         TAG_KEY = NamespacedKey(plugin, "identifier")
         RACE_KEY = NamespacedKey(instance, "race")
@@ -26,6 +27,7 @@ class ToolBox(private val plugin: Plugin) {
         PLAYER_CLASS_EXPERIENCE = NamespacedKey(instance, "player_class_experience")
         PLAYER_CLASS_EXPERIENCE_NEEDED = NamespacedKey(instance, "player_class_experience_needed")
         PLAYER_CLASS_SKILLS = NamespacedKey(instance, "player_class_skills")
+
 
         GetDebugStick()
         SetLoreOf()
@@ -43,6 +45,7 @@ class ToolBox(private val plugin: Plugin) {
         private val tagKit = TagKit
         private val fileKit = FileKit
 
+        lateinit var  playerStorageUnitsPath: String
 
         lateinit var LORE_KEY: NamespacedKey
         lateinit var TAG_KEY: NamespacedKey
@@ -52,6 +55,7 @@ class ToolBox(private val plugin: Plugin) {
         lateinit var PLAYER_CLASS_EXPERIENCE: NamespacedKey
         lateinit var PLAYER_CLASS_EXPERIENCE_NEEDED: NamespacedKey
         lateinit var PLAYER_CLASS_SKILLS: NamespacedKey
+
 
         @JvmStatic
         fun getPlugin(): Plugin {
