@@ -2,7 +2,6 @@ package dev.toast.toastsMCToolBox.lib.overrides
 
 import dev.toast.toastsMCToolBox.lib.ToolBox
 import dev.toast.toastsMCToolBox.lib.files.FileKit
-import dev.toast.toastsMCToolBox.lib.items.ItemKit
 import dev.toast.toastsMCToolBox.lib.rpx.RPXKit
 import dev.toast.toastsMCToolBox.lib.rpx.classes.RPClass
 import dev.toast.toastsMCToolBox.lib.rpx.skills.RPSkill
@@ -28,10 +27,7 @@ class ToolBox(val player: Player) {
     var health: Double
         get() = player.health
         set(value) {
-            val currentHealth = player.health
-            if (currentHealth + value > maxHealth) {
-                player.health = maxHealth
-            } else player.health = value
+            player.health = value
         }
 
     var maxHealth: Double
@@ -98,7 +94,7 @@ class ToolBox(val player: Player) {
     val canLevelUp: Boolean
         get() = xpNeeded > xp
 
-    val skills: MutableSet<RPSkill.SkillValues>
+    val skills: MutableSet<RPSkill>
         get() = RPXKit.playerSpecificSkills[player.uniqueId] ?: mutableSetOf()
 
     var skillsUnit: Store.SkillsUnit
@@ -107,44 +103,27 @@ class ToolBox(val player: Player) {
             val file = FileKit.getNormyFile("${uuid}/skills.json", ToolBox.playerStorageUnitsPath)
             if (!file.exists()) { file.mkdirs(); file.createNewFile() }
             val contents = file.readText()
-            if (contents.isEmpty()) {
-                val unit = Store.SkillsUnit(mutableSetOf())
-                return unit
-            }
             val unit = Store.SkillsUnit.deserialize(contents)
             return unit
         }
         set(value) {
+            println("Setting skills unit")
+            println(value)
             val uuid = player.uniqueId
             val file = FileKit.getFile("${uuid}/skills.json", ToolBox.playerStorageUnitsPath)
             file.overwrite(value.serialize().trimIndent())
         }
 
-    fun addSkill(skill: RPSkill) {
-        var skills = RPXKit.playerSpecificSkills[player.uniqueId]
-        if (skills == null) {
-            RPXKit.playerSpecificSkills[player.uniqueId] = mutableSetOf()
-            skills = RPXKit.playerSpecificSkills[player.uniqueId]
-        }
-
-        if (skills!!.contains(skill.serializeToValues())) {
-            throw RPSkill.SkillAlreadyExistsException("Skill already exists")
-        }
-        else RPXKit.playerSpecificSkills[player.uniqueId]!!.add(skill.serializeToValues())
+    fun addSkill(skill: RPSkill, execution: (Player) -> Unit) {
+        RPXKit.playerSpecificSkills[player.uniqueId]?.add(skill) ?:  mutableSetOf(skill)
+        RPXKit.skills[skill.getName()] = execution
+        println("Added skill ${skill.getName()}")
+        println("Skills: ${RPXKit.playerSpecificSkills[player.uniqueId]}")
     }
 
     fun removeSkill(skillName: String) {
-        val skills = RPXKit.playerSpecificSkills[player.uniqueId] ?: throw RPSkill.SkillNotFoundException("Skills not found")
-        skills.removeIf { it.name == skillName }
-    }
-
-    fun hasSkill(skillName: String): Boolean {
-        val skills = RPXKit.playerSpecificSkills[player.uniqueId] ?: throw RPSkill.SkillNotFoundException("Skills not found")
-        return skills.any { it.name == skillName }
-    }
-
-    fun generateEmptyFiles() {
-        val skillsUnitFile = FileKit.getFile("${player.uniqueId}/skills.json", ToolBox.playerStorageUnitsPath)
+        RPXKit.playerSpecificSkills[player.uniqueId]?.removeIf { it.getName() == skillName }
+        RPXKit.skills.remove(skillName)
     }
 
     /**
@@ -153,19 +132,15 @@ class ToolBox(val player: Player) {
      * @return A pair of the skill and the execution function
      */
     fun getSkill(skillName: String): Pair<RPSkill, (Player) -> Unit>? {
-        val skill = RPXKit.getSkillAndExecution(skillName)
-        return skill
+        val skill = RPXKit.playerSpecificSkills[player.uniqueId]?.firstOrNull { it.getName() == skillName }
+        val execution = RPXKit.skills[skillName]
+        if (skill == null || execution == null) return null
+        return Pair(skill, execution)
     }
 
     fun saveSkills() {
-        val playerSkills = RPXKit.playerSpecificSkills[player.uniqueId]
-        val unit = Store.SkillsUnit(playerSkills ?: mutableSetOf())
+        val unit = Store.SkillsUnit(RPXKit.playerSpecificSkills[player.uniqueId]!!.map { it.serializeToValues() }.toMutableSet())
         skillsUnit = unit
-    }
-
-    fun giveItem(item: ItemKit.TItem) {
-        item.applyChanges()
-        player.inventory.addItem(item.getFinalItem())
     }
 }
 

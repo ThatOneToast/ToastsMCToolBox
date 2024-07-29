@@ -1,0 +1,7 @@
+name: ToastsMCToolBox
+version: '1.0'
+main: dev.toast.toastsMCToolBox.plugin.ToastsMCToolBox
+api-version: '1.21'
+load: STARTUP
+authors: [ Toast ]
+description: Improve default vanilla

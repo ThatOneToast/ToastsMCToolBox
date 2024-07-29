@@ -10,8 +10,8 @@ object CooldownManager {
      * @param uuid of the thing you wish to check against cooldown
      * @param time is the time you wish the cooldown to end.
      */
-    fun applyCooldown(uuid: UUID, timeInSec: Int) {
-        cooldowns[uuid] = System.currentTimeMillis() + (timeInSec * 1000L)
+    fun applyCooldown(uuid: UUID, time: Int) {
+        cooldowns[uuid] = time.toLong()
     }
 
     /**
@@ -21,9 +21,10 @@ object CooldownManager {
      */
     fun isOnCooldown(uuid: UUID): Boolean {
         val currentTime: Long = System.currentTimeMillis()
-        val cooldownEndTime = cooldowns[uuid] ?: return false
 
-        if (cooldownEndTime <= currentTime) {
+        if (!cooldowns.containsKey(uuid)) return false
+
+        if (cooldowns.get(uuid)!! <= currentTime) {
             cooldowns.remove(uuid)
             return false
         }
@@ -63,8 +64,7 @@ object CooldownManager {
      * @param uuid
      */
     fun getCooldownTimeInSec(uuid: UUID): Int {
-        val remainingTime = cooldowns[uuid]?.minus(System.currentTimeMillis()) ?: return 0
-        return (remainingTime / 1000).toInt()
+        return ((cooldowns[uuid]!! - System.currentTimeMillis()) / 1000).toInt()
     }
 
     /**

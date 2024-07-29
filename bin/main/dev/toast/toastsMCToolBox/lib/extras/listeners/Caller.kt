@@ -10,6 +10,9 @@ import java.util.*
 
 object Caller : Listener {
 
+    init {
+        ToolBox.getPlugin().server.pluginManager.registerEvents(this, ToolBox.getPlugin())
+    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     fun interact(event: PlayerInteractEvent) {

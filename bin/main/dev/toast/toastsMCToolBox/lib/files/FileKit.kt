@@ -43,6 +43,9 @@ object FileKit {
                 if (!file.exists()) {
                     file.parentFile.mkdirs()
                     file.createNewFile()
+                    println("Created new file: ${file.absolutePath}")
+                } else {
+                    println("File already exists: ${file.absolutePath}")
                 }
             } catch (e: IOException) {
                 println("Error creating file: ${e.message}")

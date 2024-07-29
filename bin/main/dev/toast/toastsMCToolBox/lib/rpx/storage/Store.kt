@@ -8,14 +8,16 @@ object Store {
 
     data class SkillsUnit(val skills: MutableSet<RPSkill.SkillValues>) {
         fun serialize(): String {
-            val newJson = Gson().toJson(this)
+            val listToReturn: List<String> = skills.map { it.serialize() }
+            val newJson = Gson().toJson(listToReturn)
             return newJson
         }
 
         companion object {
             fun deserialize(json: String): SkillsUnit {
-                val skills = Gson().fromJson(json, SkillsUnit::class.java)
-                return skills
+                val skillValues = Gson().fromJson(json, Array<RPSkill.SkillValues>::class.java)
+                val skills = skillValues.toMutableSet()
+                return SkillsUnit(skills)
             }
         }
     }

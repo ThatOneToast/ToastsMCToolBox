@@ -2,12 +2,12 @@ package dev.toast.toastsMCToolBox.lib.tags
 
 import dev.toast.toastsMCToolBox.lib.ToolBox
 import dev.toast.toastsMCToolBox.lib.files.FileKit
+import dev.toast.toastsMCToolBox.lib.randomBitString
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import kotlin.random.Random
 
-object TagKit {
+object GameTagKit {
 
     class BlockAlreadyTaggedException(message: String) : Exception(message)
 
@@ -29,11 +29,6 @@ object TagKit {
 
         ;
     }
-
-
-
-
-
 
     /**
      * Tags a block with a random 12 bit string + a 8 bit prefix
@@ -123,11 +118,3 @@ object TagKit {
 }
 
 
-fun randomBitString(length: Int): String {
-    val chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    val random = Random.Default
-    return (1..length)
-        .map { random.nextInt(chars.length) }
-        .map(chars::get)
-        .joinToString("")
-}
