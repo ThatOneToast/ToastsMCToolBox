@@ -15,6 +15,13 @@ object GameTagKit {
         override fun toString(): String {
             return "$prefix-$suffix"
         }
+
+        companion object {
+            fun fromString(string: String): Tag {
+                val split = string.split("-")
+                return Tag(split[0], split[1])
+            }
+        }
     }
     private data class TagLocation(val x: Double, val y: Double, val z: Double) {
         override fun toString(): String {
@@ -53,11 +60,11 @@ object GameTagKit {
 
     fun tag(item: ItemStack): Tag {
         val prefix = TagPrefixes.ITEM.prefix
-        val suffix = randomBitString(12)
+        val suffix = randomBitString(32)
 
         val tag = Tag(prefix, suffix)
 
-        val meta = item.itemMeta
+        val meta = item.itemMeta ?: throw IllegalStateException("Item has no item meta")
         meta.persistentDataContainer.set(ToolBox.TAG_KEY, PersistentDataType.STRING, tag.toString())
         item.itemMeta = meta
         return tag
@@ -72,6 +79,19 @@ object GameTagKit {
         val meta = player.persistentDataContainer
         meta.set(ToolBox.TAG_KEY, PersistentDataType.STRING, tag.toString())
         return tag
+    }
+
+    fun isTagged(item: ItemStack): Boolean {
+        val itemMeta = item.itemMeta ?: return false
+        val pdc = itemMeta.persistentDataContainer
+        return pdc.has(ToolBox.TAG_KEY, PersistentDataType.STRING)
+    }
+
+    fun getTag(item: ItemStack): Tag? {
+        val itemMeta = item.itemMeta ?: return null
+        val pdc = itemMeta.persistentDataContainer
+        val tagString = pdc.get(ToolBox.TAG_KEY, PersistentDataType.STRING) ?: return null
+        return Tag.fromString(tagString)
     }
 
 

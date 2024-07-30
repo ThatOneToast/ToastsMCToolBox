@@ -3,7 +3,7 @@ package dev.toast.toastsMCToolBox.lib.commands
 import dev.toast.toastsMCToolBox.lib.PlayerCommand
 import dev.toast.toastsMCToolBox.lib.lore.LoreKit
 import dev.toast.toastsMCToolBox.lib.menus.SkillsMenu
-import dev.toast.toastsMCToolBox.lib.overrides.toolbox
+import dev.toast.toastsMCToolBox.lib.overrides.players.skillToolBox
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -18,7 +18,7 @@ class Skills : PlayerCommand(
     5
 ) {
     override fun executeCommand(sender: Player, args: Array<String>): Boolean {
-        val skillValues = sender.toolbox.skillsUnit.skills
+        val skillValues = sender.skillToolBox.skillsUnit.skills
         val skillsMenu = if (args.isEmpty()) SkillsMenu(sender) else SkillsMenu(Bukkit.getPlayer(args[0]))
 
         var skillIndex = 1

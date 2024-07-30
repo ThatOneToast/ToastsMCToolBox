@@ -1,16 +1,16 @@
 package dev.toast.toastsMCToolBox.lib
 
-import dev.toast.toastsMCToolBox.lib.commands.GetDebugStick
-import dev.toast.toastsMCToolBox.lib.commands.RPSkills
-import dev.toast.toastsMCToolBox.lib.commands.SetLoreOf
-import dev.toast.toastsMCToolBox.lib.commands.Skills
+import dev.toast.toastsMCToolBox.lib.commands.*
 import dev.toast.toastsMCToolBox.lib.extras.TDebugStick
 import dev.toast.toastsMCToolBox.lib.extras.listeners.Caller
 import dev.toast.toastsMCToolBox.lib.files.FileKit
-import dev.toast.toastsMCToolBox.lib.items.ItemKit
 import dev.toast.toastsMCToolBox.lib.lore.LoreKit
 import dev.toast.toastsMCToolBox.lib.rpx.RPXKit
+import dev.toast.toastsMCToolBox.lib.rpx.items.ArmorKit
+import dev.toast.toastsMCToolBox.lib.rpx.items.ItemKit
+import dev.toast.toastsMCToolBox.lib.rpx.mana.ManaKit
 import org.bukkit.NamespacedKey
+import org.bukkit.event.Event
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
 import kotlin.random.Random
@@ -23,7 +23,7 @@ class ToolBox(private val plugin: Plugin) {
         TDebugStick,
         RPXKit,
         ItemKit,
-
+        ArmorKit,
     )
 
     init {
@@ -39,11 +39,23 @@ class ToolBox(private val plugin: Plugin) {
         PLAYER_CLASS_EXPERIENCE_NEEDED = NamespacedKey(instance, "player_class_experience_needed")
         PLAYER_CLASS_SKILLS = NamespacedKey(instance, "player_class_skills")
         ITEM_HANDLER_KEY = NamespacedKey(instance, "item_handler")
+        ITEM_IDENTIFIER = NamespacedKey(instance, "item_identifier")
+        PLAYER_CLASS_MANA = NamespacedKey(instance, "player_class_mana")
+        PLAYER_CLASS_MAX_MANA = NamespacedKey(instance, "player_class_max_mana")
+        PLAYER_CLASS_MANA_PER_SECOND = NamespacedKey(instance, "player_class_mana_per_second")
+        PLAYER_CLASS_MAX_ARMOR = NamespacedKey(instance, "player_class_max_armor")
+        PLAYER_CLASS_MAX_SPEED = NamespacedKey(instance, "player_class_max_speed")
+        PLAYER_CLASS_MAX_JUMP_HEIGHT = NamespacedKey(instance, "player_class_max_jump_height")
+        PLAYER_CLASS_MAX_ATTACK_DAMAGE = NamespacedKey(instance, "player_class_max_attack_damage")
+        PLAYER_CLASS_MAX_ATTACK_SPEED = NamespacedKey(instance, "player_class_max_attack_speed")
+
+        ManaKit.startManaScheduler()
 
         GetDebugStick()
         SetLoreOf()
         RPSkills()
         Skills()
+        ArmorContents()
 
         listOfListeners.forEach {
             instance.server.pluginManager.registerEvents(it, instance)
@@ -69,6 +81,17 @@ class ToolBox(private val plugin: Plugin) {
         lateinit var PLAYER_CLASS_EXPERIENCE_NEEDED: NamespacedKey
         lateinit var PLAYER_CLASS_SKILLS: NamespacedKey
         lateinit var ITEM_HANDLER_KEY: NamespacedKey
+        lateinit var ITEM_IDENTIFIER: NamespacedKey
+
+        lateinit var PLAYER_CLASS_MANA: NamespacedKey
+        lateinit var PLAYER_CLASS_MAX_MANA: NamespacedKey
+        lateinit var PLAYER_CLASS_MANA_PER_SECOND: NamespacedKey
+
+        lateinit var PLAYER_CLASS_MAX_ARMOR: NamespacedKey
+        lateinit var PLAYER_CLASS_MAX_SPEED: NamespacedKey
+        lateinit var PLAYER_CLASS_MAX_JUMP_HEIGHT: NamespacedKey
+        lateinit var PLAYER_CLASS_MAX_ATTACK_DAMAGE: NamespacedKey
+        lateinit var PLAYER_CLASS_MAX_ATTACK_SPEED: NamespacedKey
 
 
         @JvmStatic
@@ -94,6 +117,11 @@ class ToolBox(private val plugin: Plugin) {
 fun registerEvent(event: Listener) {
     ToolBox.getPlugin().server.pluginManager.registerEvents(event, ToolBox.getPlugin())
 }
+
+fun callEvent(event: Event) {
+    ToolBox.getPlugin().server.pluginManager.callEvent(event)
+}
+
 fun String.prettify(): String {
     val lines = split("\n")
     val prettified = lines.joinToString("\n") { it.trim() }

@@ -1,9 +1,10 @@
-package dev.toast.toastsMCToolBox.lib.items
+package dev.toast.toastsMCToolBox.lib.rpx.items
 
 import dev.toast.toastsMCToolBox.lib.ToolBox
 import dev.toast.toastsMCToolBox.lib.extras.listeners.PlayerLeftClickEvent
 import dev.toast.toastsMCToolBox.lib.extras.listeners.PlayerRightClickEvent
 import dev.toast.toastsMCToolBox.lib.lore.LoreKit
+import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
@@ -26,17 +27,24 @@ object ItemKit : Listener {
         return itemHandlers[identifier]
     }
 
+    fun air(): ItemStack {
+        return ItemStack(Material.AIR)
+    }
+
     class TItem(private val item: ItemStack) {
         private val meta = item.itemMeta
-        private val pdc = meta.persistentDataContainer
+        val pdc = meta?.persistentDataContainer
         val loreEditor = LoreKit.LoreEditor(item)
+        val type = item.type
 
         fun setHandler(handler: ItemHandler) {
-            pdc.set(ToolBox.ITEM_HANDLER_KEY, PersistentDataType.STRING, handler.identifier.toString())
+            pdc?.set(ToolBox.ITEM_HANDLER_KEY, PersistentDataType.STRING, handler.identifier.toString())
+                ?: throw IllegalStateException("Item has no metadata")
         }
 
         fun getHandler(): ItemHandler? {
-            val handlerString = pdc.get(ToolBox.ITEM_HANDLER_KEY, PersistentDataType.STRING) ?: return null
+            val handlerString = pdc?.get(ToolBox.ITEM_HANDLER_KEY, PersistentDataType.STRING) ?: return null
+                ?: throw IllegalStateException("Item has no metadata")
             return itemHandlers[handlerString]
         }
 
@@ -65,7 +73,7 @@ object ItemKit : Listener {
         val meta = item.itemMeta ?: return
         val handler = meta.persistentDataContainer.get(ToolBox.ITEM_HANDLER_KEY, PersistentDataType.STRING)
             ?.let { getHandler(it) } ?: return
-        handler.onRightClick(event.player, TItem(item))
+        handler.onLeftClick(event.player, TItem(item))
     }
 
 
@@ -90,4 +98,6 @@ object ItemKit : Listener {
             handler.onShiftRightClick(event.player, TItem(item))
         }
     }
+
+
 }

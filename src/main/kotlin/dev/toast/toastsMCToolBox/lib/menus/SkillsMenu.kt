@@ -1,6 +1,6 @@
 package dev.toast.toastsMCToolBox.lib.menus
 
-import dev.toast.toastsMCToolBox.lib.overrides.message
+import dev.toast.toastsMCToolBox.lib.overrides.players.message
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Material

@@ -20,5 +20,18 @@ object Store {
         }
     }
 
+    data class ItemHandlerValues(val values: MutableMap<String, String>) { // Name:ID
+        fun toJson(): String {
+            return Gson().toJson(this)
+        }
+
+        companion object {
+            fun fromJson(json: String): ItemHandlerValues? {
+                val gson = Gson()
+                return gson.fromJson(json, ItemHandlerValues::class.java)
+            }
+        }
+    }
+
 
 }

@@ -4,8 +4,10 @@ import com.google.gson.Gson
 import dev.toast.toastsMCToolBox.lib.extras.CooldownManager
 import dev.toast.toastsMCToolBox.lib.extras.combineUUIDs
 import dev.toast.toastsMCToolBox.lib.extras.listeners.PlayerRightClickEvent
-import dev.toast.toastsMCToolBox.lib.overrides.message
-import dev.toast.toastsMCToolBox.lib.overrides.toolbox
+import dev.toast.toastsMCToolBox.lib.overrides.players.ManaToolBox
+import dev.toast.toastsMCToolBox.lib.overrides.players.manaToolBox
+import dev.toast.toastsMCToolBox.lib.overrides.players.message
+import dev.toast.toastsMCToolBox.lib.overrides.players.toolbox
 import dev.toast.toastsMCToolBox.lib.prettify
 import dev.toast.toastsMCToolBox.lib.rpx.RPXKit
 import org.bukkit.entity.Player
@@ -23,6 +25,7 @@ open class RPSkill(open val name: String) {
         val cooldownTime: Int,
         val maxLevel: Int,
         val currentLevel: Int,
+        val manaCost: Int,
         val listener: String
     ) {
         fun serialize(): String {
@@ -38,12 +41,15 @@ open class RPSkill(open val name: String) {
         }
     }
 
+
     open fun getDescription(): String = "No description"
     open fun getLevelRequirement(): Int = 1
     open fun getCooldownTime(): Int = 0
     open fun getMaxLevel(): Int = 5
     open fun getCurrentLevel(): Int = 1
-    fun execute(player: Player) {
+    open fun getManaCost(): Int = 18
+
+    open fun execute(player: Player) {
         val cooldownUUID = combineUUIDs(player.uniqueId, id)
         var cooldownString = getFromStorage("cooldown")
         if (cooldownString == null) {
@@ -59,9 +65,15 @@ open class RPSkill(open val name: String) {
             player.message("<gold>$name</gold> <gray>is on cooldown for <red>$cooldownTimeSec</red> seconds")
             return
         } else {
-            RPXKit.getSkillExecution(name)?.invoke(player)
-                ?: throw IllegalStateException("Skill not found")
-            CooldownManager.applyCooldown(cooldown, getCooldownTime())
+            try {
+                player.manaToolBox.spendMana(getManaCost())
+                RPXKit.getSkillExecution(name)?.invoke(player)
+                    ?: throw IllegalStateException("Skill not found")
+                CooldownManager.applyCooldown(cooldown, getCooldownTime())
+            } catch (_: ManaToolBox.NotEnoughManaException) {
+                player.message("<red>Not enough mana")
+            }
+
         }
     }
     open val listener: String = PlayerRightClickEvent::class.java.name
@@ -88,7 +100,7 @@ open class RPSkill(open val name: String) {
     }
 
     fun serialize(): String {
-        val skillValues = SkillValues(name, getDescription(), getLevelRequirement(), getCooldownTime(), getMaxLevel(), getCurrentLevel(), listener)
+        val skillValues = SkillValues(name, getDescription(), getLevelRequirement(), getCooldownTime(), getMaxLevel(), getCurrentLevel(), getManaCost(), listener)
         return skillValues.serialize()
     }
 
@@ -100,6 +112,7 @@ open class RPSkill(open val name: String) {
             getCooldownTime(),
             getMaxLevel(),
             getCurrentLevel(),
+            getManaCost(),
             listener
         )
     }

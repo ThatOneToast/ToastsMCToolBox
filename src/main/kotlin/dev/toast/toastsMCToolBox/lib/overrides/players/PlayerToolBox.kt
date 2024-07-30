@@ -1,16 +1,20 @@
-package dev.toast.toastsMCToolBox.lib.overrides
+package dev.toast.toastsMCToolBox.lib.overrides.players
 
 import dev.toast.toastsMCToolBox.lib.ToolBox
 import dev.toast.toastsMCToolBox.lib.files.FileKit
-import dev.toast.toastsMCToolBox.lib.items.ItemKit
+import dev.toast.toastsMCToolBox.lib.overrides.isNegative
+import dev.toast.toastsMCToolBox.lib.overrides.toTItem
 import dev.toast.toastsMCToolBox.lib.rpx.RPXKit
 import dev.toast.toastsMCToolBox.lib.rpx.classes.RPClass
+import dev.toast.toastsMCToolBox.lib.rpx.items.ArmorKit
+import dev.toast.toastsMCToolBox.lib.rpx.items.ItemKit
 import dev.toast.toastsMCToolBox.lib.rpx.skills.RPSkill
 import dev.toast.toastsMCToolBox.lib.rpx.storage.Store
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
+
 
 /**
  * Sends a message to the player
@@ -24,7 +28,7 @@ fun Player.message(message: String) {
 }
 
 @Suppress("UNUSED")
-class ToolBox(val player: Player) {
+class PlayerToolBox(val player: Player) {
     var health: Double
         get() = player.health
         set(value) {
@@ -36,9 +40,15 @@ class ToolBox(val player: Player) {
 
     var maxHealth: Double
         get() = player.getAttribute(Attribute.GENERIC_MAX_HEALTH)?.baseValue ?: 20.0
+
         set(value) {
+            val race = RPXKit.getRace(player.selectedRace)
+            if (value > (race?.getMaxHealth() ?: 20.0)) throw IllegalStateException("Max health cannot be greater than ${race?.getMaxHealth()}")
             player.getAttribute(Attribute.GENERIC_MAX_HEALTH)?.baseValue = value
         }
+
+    val maxHealthCap: Double
+        get() = RPXKit.getRace(player.selectedRace)?.getMaxHealth() ?: 20.0
 
     var armor: Double
         get() = player.getAttribute(Attribute.GENERIC_ARMOR)?.baseValue ?: 0.0
@@ -46,11 +56,22 @@ class ToolBox(val player: Player) {
             player.getAttribute(Attribute.GENERIC_ARMOR)?.baseValue = value
         }
 
+    var maxArmor: Double
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MAX_ARMOR, PersistentDataType.DOUBLE) ?: 0.0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MAX_ARMOR, PersistentDataType.DOUBLE, value)
+        }
 
     var speed: Double
         get() = player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)?.baseValue ?: 0.0
         set(value) {
             player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)?.baseValue = value
+        }
+
+    var maxSpeed: Double
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MAX_SPEED, PersistentDataType.DOUBLE) ?: 0.0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MAX_SPEED, PersistentDataType.DOUBLE, value)
         }
 
     var jumpHeight: Double
@@ -59,16 +80,34 @@ class ToolBox(val player: Player) {
             player.getAttribute(Attribute.GENERIC_JUMP_STRENGTH)?.baseValue = value
         }
 
+    var maxJumpHeight: Double
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MAX_JUMP_HEIGHT, PersistentDataType.DOUBLE) ?: 0.0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MAX_JUMP_HEIGHT, PersistentDataType.DOUBLE, value)
+        }
+
     var attackDamage: Double
         get() = player.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE)?.baseValue ?: 0.0
         set(value) {
             player.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE)?.baseValue = value
         }
 
+    var maxAttackDamage: Double
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MAX_ATTACK_DAMAGE, PersistentDataType.DOUBLE) ?: 0.0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MAX_ATTACK_DAMAGE, PersistentDataType.DOUBLE, value)
+        }
+
     var attackSpeed: Double
         get() = player.getAttribute(Attribute.GENERIC_ATTACK_SPEED)?.baseValue ?: 0.0
         set(value) {
             player.getAttribute(Attribute.GENERIC_ATTACK_SPEED)?.baseValue = value
+        }
+
+    var maxAttackSpeed: Double
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MAX_ATTACK_SPEED, PersistentDataType.DOUBLE) ?: 0.0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MAX_ATTACK_SPEED, PersistentDataType.DOUBLE, value)
         }
 
     var level: Int
@@ -98,6 +137,28 @@ class ToolBox(val player: Player) {
     val canLevelUp: Boolean
         get() = xpNeeded > xp
 
+
+    fun giveItem(item: ItemKit.TItem) {
+        item.applyChanges()
+        player.inventory.addItem(item.getFinalItem())
+    }
+
+    fun getArmor(): ArmorKit.EquippedArmor {
+        val helm = player.inventory.helmet
+        val chest = player.inventory.chestplate
+        val legs = player.inventory.leggings
+        val boots = player.inventory.boots
+        val armor = ArmorKit.EquippedArmor(helm?.toTItem(), chest?.toTItem(), legs?.toTItem(), boots?.toTItem())
+        return armor
+    }
+
+    fun generateEmptyFiles() {
+        val skillsUnitFile = FileKit.getFile("${player.uniqueId}/skills.json", ToolBox.playerStorageUnitsPath)
+    }
+}
+
+@Suppress("UNUSED")
+class SkillsToolBox(val player: Player) {
     val skills: MutableSet<RPSkill.SkillValues>
         get() = RPXKit.playerSpecificSkills[player.uniqueId] ?: mutableSetOf()
 
@@ -143,10 +204,6 @@ class ToolBox(val player: Player) {
         return skills.any { it.name == skillName }
     }
 
-    fun generateEmptyFiles() {
-        val skillsUnitFile = FileKit.getFile("${player.uniqueId}/skills.json", ToolBox.playerStorageUnitsPath)
-    }
-
     /**
      * Returns a pair of the skill and the execution function < Skill, Execution >
      * @param skillName The name of the skill
@@ -162,21 +219,60 @@ class ToolBox(val player: Player) {
         val unit = Store.SkillsUnit(playerSkills ?: mutableSetOf())
         skillsUnit = unit
     }
-
-    fun giveItem(item: ItemKit.TItem) {
-        item.applyChanges()
-        player.inventory.addItem(item.getFinalItem())
-    }
 }
 
-val Player.toolbox: dev.toast.toastsMCToolBox.lib.overrides.ToolBox
-    get() = ToolBox(this)
+@Suppress("UNUSED")
+class ManaToolBox(val player: Player) {
+    class NotEnoughManaException(message: String) : Exception(message)
+    class ManaOverflowException(message: String) : Exception(message)
 
-var Player.selectedRace: RPClass?
-    get() {
-        val selectedClassJsonString = persistentDataContainer.get(ToolBox.RACE_KEY, PersistentDataType.STRING) ?: return null
-        return RPClass.fromJson(selectedClassJsonString)
+    var mana: Int
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MANA, PersistentDataType.INTEGER) ?: 0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MANA, PersistentDataType.INTEGER, value)
+        }
+
+    var maxMana: Int
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MAX_MANA, PersistentDataType.INTEGER) ?: 0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MAX_MANA, PersistentDataType.INTEGER, value)
+        }
+
+    var manaPerSecond: Int
+        get() = player.persistentDataContainer.get(ToolBox.PLAYER_CLASS_MANA_PER_SECOND, PersistentDataType.INTEGER) ?: 0
+        set(value) {
+            player.persistentDataContainer.set(ToolBox.PLAYER_CLASS_MANA_PER_SECOND, PersistentDataType.INTEGER, value)
+        }
+
+    fun spendMana(mana: Int) {
+        val newMana = this.mana - mana
+        if (newMana.isNegative()) throw NotEnoughManaException("Not enough mana $newMana")
+        else this.mana = newMana
     }
+
+    fun giveMana(mana: Int) {
+        val newMana = this.mana + mana
+        if (newMana > maxMana) throw ManaOverflowException("Mana overflow $newMana")
+        else this.mana = newMana
+    }
+
+
+}
+
+val Player.toolbox: PlayerToolBox
+    get() = PlayerToolBox(this)
+
+val Player.skillToolBox: SkillsToolBox
+    get() = SkillsToolBox(this)
+
+val Player.manaToolBox: ManaToolBox
+    get() = ManaToolBox(this)
+
+var Player.selectedRace: String
+    get() = this.persistentDataContainer.get(ToolBox.RACE_KEY, PersistentDataType.STRING) ?: ""
     set(value) {
-        persistentDataContainer.set(ToolBox.RACE_KEY, PersistentDataType.STRING, value?.toJson() ?: "")
+        this.persistentDataContainer.set(ToolBox.RACE_KEY, PersistentDataType.STRING, value)
     }
+
+val Player.raceClass: RPClass?
+    get() = RPXKit.getRace(selectedRace)

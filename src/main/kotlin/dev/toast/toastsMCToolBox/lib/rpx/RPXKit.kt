@@ -2,7 +2,9 @@ package dev.toast.toastsMCToolBox.lib.rpx
 
 import dev.toast.toastsMCToolBox.lib.extras.listeners.PlayerLeftClickEvent
 import dev.toast.toastsMCToolBox.lib.extras.listeners.PlayerRightClickEvent
-import dev.toast.toastsMCToolBox.lib.overrides.toolbox
+import dev.toast.toastsMCToolBox.lib.overrides.players.skillToolBox
+import dev.toast.toastsMCToolBox.lib.overrides.players.toolbox
+import dev.toast.toastsMCToolBox.lib.rpx.classes.RPClass
 import dev.toast.toastsMCToolBox.lib.rpx.skills.RPSkill
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -12,9 +14,18 @@ import org.bukkit.event.player.*
 import java.util.*
 
 object RPXKit : Listener {
-
-
     val playerSpecificSkills: MutableMap<UUID, MutableSet<RPSkill.SkillValues>> = mutableMapOf()
+
+    private val races: MutableMap<String, RPClass> = mutableMapOf()
+
+    fun registerRace(race: RPClass) {
+        races[race.getName()] = race
+    }
+
+    fun getRace(raceName: String): RPClass? {
+        return races[raceName]
+    }
+
 
     private val rightClickListeners: MutableMap<String, Pair<RPSkill, (Player) -> Unit>> = mutableMapOf()
     private val leftClickListeners: MutableMap<String, Pair<RPSkill, (Player) -> Unit>> = mutableMapOf()
@@ -77,12 +88,14 @@ object RPXKit : Listener {
             ?: quitListeners[skillName]
     }
 
+
+
     @EventHandler(priority = EventPriority.LOWEST)
     private fun loadPlayerSkills(event: PlayerJoinEvent) {
         event.player.toolbox.generateEmptyFiles()
         val player = event.player
         val uuid = player.uniqueId
-        playerSpecificSkills[uuid] = player.toolbox.skillsUnit.skills
+        playerSpecificSkills[uuid] = player.skillToolBox.skillsUnit.skills
         println("Loaded player skills for ${player.name}, skills: ${playerSpecificSkills[uuid]}")
 
     }
@@ -91,7 +104,7 @@ object RPXKit : Listener {
     private fun playerRightClick(event: PlayerRightClickEvent) {
         for (skill in rightClickListeners) {
             val rpSkill: RPSkill = skill.value.first
-            if (event.player.toolbox.hasSkill(rpSkill.name)) {
+            if (event.player.skillToolBox.hasSkill(rpSkill.name)) {
                 rpSkill.execute(event.player)
             }
         }
@@ -101,7 +114,7 @@ object RPXKit : Listener {
     private fun playerLeftClick(event: PlayerLeftClickEvent) {
         for (skill in leftClickListeners) {
             val rpSkill: RPSkill = skill.value.first
-            if (event.player.toolbox.hasSkill(rpSkill.name)) {
+            if (event.player.skillToolBox.hasSkill(rpSkill.name)) {
                 rpSkill.execute(event.player)
             }
         }
@@ -111,7 +124,7 @@ object RPXKit : Listener {
     private fun playerInteract(event: PlayerInteractEvent) {
         for (skill in interactListeners) {
             val rpSkill: RPSkill = skill.value.first
-            if (event.player.toolbox.hasSkill(rpSkill.name)) {
+            if (event.player.skillToolBox.hasSkill(rpSkill.name)) {
                 rpSkill.execute(event.player)
             }
         }
@@ -121,7 +134,7 @@ object RPXKit : Listener {
     private fun playerRespawn(event: PlayerRespawnEvent) {
         for (skill in respawnListeners) {
             val rpSkill: RPSkill = skill.value.first
-            if (event.player.toolbox.hasSkill(rpSkill.name)) {
+            if (event.player.skillToolBox.hasSkill(rpSkill.name)) {
                 rpSkill.execute(event.player)
             }
         }
@@ -130,7 +143,7 @@ object RPXKit : Listener {
     private fun playerAdvancementDone(event: PlayerAdvancementDoneEvent) {
         for (skill in advancementDoneListeners) {
             val rpSkill: RPSkill = skill.value.first
-            if (event.player.toolbox.hasSkill(rpSkill.name)) {
+            if (event.player.skillToolBox.hasSkill(rpSkill.name)) {
                 rpSkill.execute(event.player)
             }
         }
@@ -138,7 +151,7 @@ object RPXKit : Listener {
     private fun playerJoin(event: PlayerJoinEvent) {
         for (skill in joinListeners) {
             val rpSkill: RPSkill = skill.value.first
-            if (event.player.toolbox.hasSkill(rpSkill.name)) {
+            if (event.player.skillToolBox.hasSkill(rpSkill.name)) {
                 rpSkill.execute(event.player)
             }
         }
@@ -148,7 +161,7 @@ object RPXKit : Listener {
     private fun playerQuit(event: PlayerQuitEvent) {
         for (skill in quitListeners) {
             val rpSkill: RPSkill = skill.value.first
-            if (event.player.toolbox.hasSkill(rpSkill.name)) {
+            if (event.player.skillToolBox.hasSkill(rpSkill.name)) {
                 rpSkill.execute(event.player)
             }
         }
