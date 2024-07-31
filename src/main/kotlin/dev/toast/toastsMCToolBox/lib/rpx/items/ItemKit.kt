@@ -37,6 +37,38 @@ object ItemKit : Listener {
         val loreEditor = LoreKit.LoreEditor(item)
         val type = item.type
 
+        private val storage: MutableMap<String, String> = mutableMapOf()
+
+        fun addStorage(key: String, value: String) {
+            storage[key] = value
+        }
+
+        fun getFromStorage(key: String): String? {
+            return storage[key]
+        }
+
+        fun setStorage(key: String, value: String) {
+            storage[key] = value
+        }
+
+        fun getKeysStartingWith(prefix: String): List<String> {
+            return storage.keys.filter { it.startsWith(prefix) }
+        }
+
+        init {
+            if (item.itemMeta != null) {
+                val storageString = item.itemMeta.persistentDataContainer.get(ToolBox.ITEM_STORAGE_KEY, PersistentDataType.STRING)
+                if (storageString != null) {
+                    val storageArray = storageString.split(";")
+                    storageArray.forEach {
+                        val split = it.split(":")
+                        storage[split[0]] = split[1]
+                    }
+                }
+            }
+
+        }
+
         fun setHandler(handler: ItemHandler) {
             pdc?.set(ToolBox.ITEM_HANDLER_KEY, PersistentDataType.STRING, handler.identifier.toString())
                 ?: throw IllegalStateException("Item has no metadata")
@@ -51,6 +83,15 @@ object ItemKit : Listener {
         fun applyChanges() {
             loreEditor.applyChanges()
             item.itemMeta = meta
+            val storageString = StringBuilder()
+            if (storage.isNotEmpty()) {
+                storage.forEach { (key, value) ->
+                    storageString.append("$key:$value;")
+                }
+                storageString.deleteCharAt(storageString.length - 1)
+                item.itemMeta.persistentDataContainer.set(ToolBox.ITEM_STORAGE_KEY, PersistentDataType.STRING,storageString.toString())
+
+            }
         }
 
         fun getFinalItem(): ItemStack {
@@ -98,6 +139,7 @@ object ItemKit : Listener {
             handler.onShiftRightClick(event.player, TItem(item))
         }
     }
+
 
 
 }

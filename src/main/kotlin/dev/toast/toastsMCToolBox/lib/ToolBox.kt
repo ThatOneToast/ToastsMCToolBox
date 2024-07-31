@@ -40,6 +40,7 @@ class ToolBox(private val plugin: Plugin) {
         PLAYER_CLASS_SKILLS = NamespacedKey(instance, "player_class_skills")
         ITEM_HANDLER_KEY = NamespacedKey(instance, "item_handler")
         ITEM_IDENTIFIER = NamespacedKey(instance, "item_identifier")
+        ITEM_STORAGE_KEY = NamespacedKey(instance, "item_storage")
         PLAYER_CLASS_MANA = NamespacedKey(instance, "player_class_mana")
         PLAYER_CLASS_MAX_MANA = NamespacedKey(instance, "player_class_max_mana")
         PLAYER_CLASS_MANA_PER_SECOND = NamespacedKey(instance, "player_class_mana_per_second")
@@ -82,6 +83,7 @@ class ToolBox(private val plugin: Plugin) {
         lateinit var PLAYER_CLASS_SKILLS: NamespacedKey
         lateinit var ITEM_HANDLER_KEY: NamespacedKey
         lateinit var ITEM_IDENTIFIER: NamespacedKey
+        lateinit var ITEM_STORAGE_KEY: NamespacedKey
 
         lateinit var PLAYER_CLASS_MANA: NamespacedKey
         lateinit var PLAYER_CLASS_MAX_MANA: NamespacedKey
@@ -135,4 +137,8 @@ fun randomBitString(length: Int): String {
         .map { random.nextInt(chars.length) }
         .map(chars::get)
         .joinToString("")
+}
+
+fun String.removePrefix(prefix: String): String {
+    return if (startsWith(prefix)) substring(prefix.length) else this
 }

@@ -1,9 +1,11 @@
 package dev.toast.toastsMCToolBox.lib.rpx.skills
 
 import com.google.gson.Gson
+import dev.toast.toastsMCToolBox.lib.callEvent
 import dev.toast.toastsMCToolBox.lib.extras.CooldownManager
 import dev.toast.toastsMCToolBox.lib.extras.combineUUIDs
 import dev.toast.toastsMCToolBox.lib.extras.listeners.PlayerRightClickEvent
+import dev.toast.toastsMCToolBox.lib.extras.listeners.SkillExecutedEvent
 import dev.toast.toastsMCToolBox.lib.overrides.players.ManaToolBox
 import dev.toast.toastsMCToolBox.lib.overrides.players.manaToolBox
 import dev.toast.toastsMCToolBox.lib.overrides.players.message
@@ -70,6 +72,7 @@ open class RPSkill(open val name: String) {
                 RPXKit.getSkillExecution(name)?.invoke(player)
                     ?: throw IllegalStateException("Skill not found")
                 CooldownManager.applyCooldown(cooldown, getCooldownTime())
+                callEvent(SkillExecutedEvent(this, player))
             } catch (_: ManaToolBox.NotEnoughManaException) {
                 player.message("<red>Not enough mana")
             }

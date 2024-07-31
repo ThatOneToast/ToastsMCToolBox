@@ -117,6 +117,7 @@ object LoreKit {
             val descriptionLore: MutableList<String> = mutableListOf()
             val enchantmentLores: MutableList<String> = mutableListOf()
             val infoLores: MutableList<String> = mutableListOf()
+            val setLores: MutableList<String> = mutableListOf()
             val lores: MutableList<String> = mutableListOf()
 
 
@@ -127,7 +128,9 @@ object LoreKit {
                     infoLores.add(it.value)
                 } else if (it.key.startsWith("desc") || it.key.startsWith("description")) {
                     descriptionLore.add(it.value)
-                } else {
+                } else if (it.key.startsWith("set")) {
+                    setLores.add(it.value)
+                }else {
                     lores.add(it.value)
                 }
             }
@@ -144,6 +147,13 @@ object LoreKit {
             if (enchantmentLores.isNotEmpty()) {
                 LoresCompons.add(MiniMessage.miniMessage().deserialize("<gold>----- <bold>Enchantments</bold> -----</gold>"))
                 enchantmentLores.forEach {
+                    LoresCompons.add(MiniMessage.miniMessage().deserialize(it))
+                }
+            }
+
+            if (setLores.isNotEmpty()) {
+                LoresCompons.add(MiniMessage.miniMessage().deserialize("<green>----- <bold>Set</bold> -----</green>"))
+                setLores.forEach {
                     LoresCompons.add(MiniMessage.miniMessage().deserialize(it))
                 }
             }
